@@ -1,0 +1,519 @@
+:root {
+  /* Color Palette */
+  --primary-blue: #007bff;
+  --secondary-grey: #6c757d;
+  --light-grey: #f8f9fa;
+  --medium-grey: #e9ecef;
+  --dark-grey: #343a40;
+  --text-color: #333;
+  --border-color: #dee2e6;
+  --hover-bg: #f0f8ff;
+  --focus-outline: rgba(0, 123, 255, 0.25);
+
+  /* Semantic Colors for Comments */
+  --comment-red-bg: #f8d7da;
+  --comment-red-text: #721c24;
+  --comment-grey-bg: #e2e3e5;
+  --comment-grey-text: #383d41;
+  --comment-green-bg: #d4edda;
+  --comment-green-text: #155724;
+
+  /* Spacing System (using a base of 8px) */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Font Sizes */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-md: 1.125rem;  /* 18px */
+  --font-size-lg: 1.25rem;   /* 20px */
+  --font-size-xl: 1.5rem;    /* 24px */
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: var(--spacing-lg);
+  background-color: var(--light-grey);
+  color: var(--text-color);
+  line-height: 1.6;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+h2 {
+  color: var(--dark-grey);
+  margin: 0 0 var(--spacing-md) 0;
+  font-weight: 600;
+  font-size: var(--font-size-xl);
+}
+
+/* File Upload Styling */
+#upload {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  color: var(--text-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#upload:hover {
+  border-color: var(--primary-blue);
+}
+
+#upload:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-outline);
+}
+
+#tableWrapper {
+  display: none; /* Hide by default */
+  overflow-x: auto;
+  max-width: 100%;
+  margin-top: var(--spacing-lg);
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: var(--spacing-sm);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* This class will be added by JavaScript to make it visible */
+#tableWrapper.visible {
+display: block;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: var(--font-size-sm);
+  table-layout: auto;
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th,
+td {
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  vertical-align: middle;
+  position: relative;
+}
+
+th {
+  background-color: var(--medium-grey);
+  color: var(--dark-grey);
+  font-weight: 600;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align: center;
+}
+
+/* Rounded corners for the table */
+table thead tr:first-child th:first-child {
+  border-top-left-radius: 8px;
+}
+table thead tr:first-child th:last-child {
+  border-top-right-radius: 8px;
+}
+table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+th.account-name,
+td:first-child {
+  width: 200px;
+  min-width: 150px;
+  max-width: 250px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  position: sticky;
+  left: 0;
+  background-color: #fff;
+  z-index: 3;
+  padding-left: 40px; /* Space for toggle icon */
+}
+th.account-name {
+  background-color: var(--medium-grey); /* Match header background */
+}
+
+/* Toggle icon */
+.toggle-icon {
+  position: absolute;
+  left: var(--spacing-md); /* Align to the left */
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: var(--font-size-base);
+  color: var(--primary-blue); /* Give it a color */
+  padding: var(--spacing-xxs);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-icon:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+th.account-name span:last-of-type { /* Adjust spacing for text next to icon */
+    margin-left: var(--spacing-lg); /* More space between icon and text */
+}
+
+/* Date columns animation */
+.date-col, .accordion-col-summary {
+  display: none;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  white-space: nowrap;
+  text-align: right;
+  padding: 8px 12px;
+}
+
+.date-col.expanded, .accordion-col-summary.expanded {
+  display: table-cell;
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Tooltip Styling */
+.tooltip {
+  position: absolute;
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px 10px;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
+.has-tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.has-tooltip:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  background-color: var(--dark-grey);
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  position: absolute;
+  z-index: 10;
+  bottom: 125%; /* Position above the element */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px); /* Slight upward movement */
+}
+
+/* CSS class for row hover highlight */
+.highlight-row:hover {
+  background-color: var(--hover-bg); /* Lighter, more subtle hover */
+}
+
+/* Fixed comment column */
+.fixed-comment {
+  width: 300px;
+  min-width: 250px;
+  max-width: 350px;
+  white-space: normal;
+  word-wrap: break-word;
+  font-size: var(--font-size-sm);
+}
+
+/* Semantic Comment Colors */
+.comment-red {
+  background-color: var(--comment-red-bg) !important;
+  color: var(--comment-red-text);
+  font-weight: 500; /* Slightly less bold */
+  border: 1px solid var(--comment-red-text); /* Add a subtle border */
+}
+.comment-grey {
+  background-color: var(--comment-grey-bg) !important;
+  color: var(--comment-grey-text);
+  font-style: italic;
+  border: 1px solid var(--comment-grey-text);
+}
+.comment-green {
+  background-color: var(--comment-green-bg) !important;
+  color: var(--comment-green-text);
+  font-weight: 500;
+  border: 1px solid var(--comment-green-text);
+}
+
+/* Mobile specific styles (Accordion) */
+#mobileAccordion {
+  display: none; /* Hidden by default, shown on mobile after upload */
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-sm);
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+
+
+.accordion-item {
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-xs);
+  border-radius: 6px;
+  overflow: hidden; /* Ensures content stays within rounded corners */
+  /* Base background, will be overridden by specific comment classes */
+  background-color: #fff; 
+  transition: background-color 0.3s ease; /* Smooth transition for background color */
+}
+.accordion-item:last-child {
+  margin-bottom: 0;
+}
+
+/* New: Accordion Header Background Colors based on comment status */
+.accordion-item.comment-red-bg .accordion-header {
+background-color: var(--comment-red-bg);
+border-color: var(--comment-red-text); /* Also make header border match */
+color: var(--comment-red-text); /* Text color for header */
+}
+.accordion-item.comment-grey-bg .accordion-header {
+background-color: var(--comment-grey-bg);
+border-color: var(--comment-grey-text);
+color: var(--comment-grey-text);
+}
+.accordion-item.comment-green-bg .accordion-header {
+background-color: var(--comment-green-bg);
+border-color: var(--comment-green-text);
+color: var(--comment-green-text);
+}
+
+/* Also, adjust hover for these colored headers */
+.accordion-item.comment-red-bg .accordion-header:hover {
+background-color: color-mix(in srgb, var(--comment-red-bg) 85%, #000); /* Slightly darker on hover */
+}
+.accordion-item.comment-grey-bg .accordion-header:hover {
+background-color: color-mix(in srgb, var(--comment-grey-bg) 85%, #000);
+}
+.accordion-item.comment-green-bg .accordion-header:hover {
+background-color: color-mix(in srgb, var(--comment-green-bg) 85%, #000);
+}
+
+/* Ensure the background of the actual content remains white */
+.accordion-content {
+background-color: #fff; /* Explicitly keep content white */
+}
+
+/* Ensure the comment text inside content doesn't have an overridden background */
+.accordion-content p strong {
+color: var(--secondary-grey);
+}
+.accordion-content p .comment-red,
+.accordion-content p .comment-grey,
+.accordion-content p .comment-green {
+background-color: transparent !important; /* Remove background from inner comment span */
+border: none !important; /* Remove border from inner comment span */
+padding: 0 !important; /* Remove padding from inner comment span */
+font-weight: normal; /* Reset font-weight if desired */
+font-style: normal; /* Reset font-style if desired */
+}
+/* Re-apply the text color for the inner comment span */
+.accordion-content p .comment-red { color: var(--comment-red-text); }
+.accordion-content p .comment-grey { color: var(--comment-grey-text); }
+.accordion-content p .comment-green { color: var(--comment-green-text); }
+
+.accordion-header {
+  background-color: var(--light-grey);
+  padding: var(--spacing-md) var(--spacing-lg);
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color); /* Use theme border */
+  color: var(--dark-grey);
+  transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+  background-color: var(--medium-grey);
+}
+.accordion-item.active .accordion-header {
+    background-color: var(--medium-grey); /* Keep header highlighted when open */
+}
+
+.accordion-content {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: #fff; /* Content always white for readability */
+  display: none; /* Hidden by default */
+  font-size: var(--font-size-sm);
+  color: var(--text-color);
+}
+
+.accordion-content p {
+  margin: var(--spacing-xxs) 0;
+}
+.accordion-content p strong {
+    color: var(--secondary-grey);
+}
+
+.accordion-toggle-icon {
+  font-size: var(--font-size-md); /* Slightly larger icon */
+  width: 1em; /* Fixed width to prevent jump */
+  text-align: center;
+  transition: transform 0.3s ease;
+  color: var(--primary-blue);
+}
+
+.accordion-item.active .accordion-toggle-icon {
+  transform: rotate(90deg); /* Still use rotate for smooth transition */
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 992px) { /* Adjust breakpoint for larger tablets/smaller desktops */
+    th.account-name,
+    td:first-child {
+        width: 200px;
+        min-width: 180px;
+        max-width: 250px;
+    }
+    .fixed-comment {
+        width: 200px;
+        min-width: 180px;
+        max-width: 250px;
+    }
+}
+
+#mobileAccordion {
+display: none; /* Default to hiding the mobile accordion on desktop */
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  #tableWrapper {
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+  
+  table {
+    border: none;
+  }
+  
+  thead {
+    display: none;
+  }
+  
+  tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 12px 15px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  td:last-child {
+    border-bottom: none;
+  }
+  
+  td:before {
+    content: attr(data-header);
+    font-weight: 600;
+    margin-right: 1rem;
+    text-align: left;
+    flex: 1;
+  }
+  
+  td:first-child {
+    position: relative;
+    padding-left: 15px;
+    background-color: var(--light-grey);
+    font-weight: 600;
+  }
+  
+  td:first-child:before {
+    display: none;
+  }
+  
+  .accordion-toggle-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #tableWrapper {
+    display: none !important; /* Force hide on mobile regardless of .visible class */
+}
+#mobileAccordion.visible { /* Class added by JS when content is ready */
+  display: block;
+}
+  body {
+    padding: var(--spacing-md); /* Reduce padding on smaller screens */
+  }
+  h2 {
+    font-size: var(--font-size-lg);
+  }
+}
