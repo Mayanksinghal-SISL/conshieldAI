@@ -113,8 +113,17 @@ function renderProcessedData(processedData) {
 
     const tbody = document.createElement('tbody');
     const mobileAccordionContainer = document.getElementById('mobileAccordion');
-    mobileAccordionContainer.innerHTML = ''; // Clear previous content
-    mobileAccordionContainer.classList.remove('visible'); // Hide initially
+
+    // If wrapper doesn't exist (first run), create it
+    let accordionWrapper = mobileAccordionContainer.querySelector('.accordionWrapper');
+    if (!accordionWrapper) {
+        accordionWrapper = document.createElement('div');
+        accordionWrapper.classList.add('accordionWrapper');
+        mobileAccordionContainer.appendChild(accordionWrapper);
+    }
+    // Clear only the accordion items, not the logo
+    accordionWrapper.innerHTML = '';
+    accordionWrapper.classList.remove('visible');
 
     // Populate table body with client data and prepare mobile accordion data
     clientDataForDisplay.forEach(clientData => {
@@ -253,7 +262,7 @@ function renderProcessedData(processedData) {
             <p><strong>Comments:</strong> <span class="${clientData.commentClass}">${clientData.comments}</span></p>
         `;
         accordionItem.appendChild(accordionContent);
-        mobileAccordionContainer.appendChild(accordionItem);
+        accordionWrapper.appendChild(accordionItem);
 
         accordionHeader.addEventListener('click', () => {
             document.querySelectorAll('.accordion-item.active').forEach(item => {

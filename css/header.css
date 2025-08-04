@@ -1,0 +1,56 @@
+/*
+  Header Styles
+  Font: Now-Regular by Hanken Design Co.
+  Icon Designer: Larisa Skosyrska
+*/
+
+/* --- Updated @font-face rule to use a local font file --- */
+@font-face {
+  font-family: 'Now-Regular';
+  src: url('/css/fonts/Now-Regular.woff2') format('woff2'),
+       url('/css/fonts/Now-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.app-header {
+  background: linear-gradient(to right, #FBF3EF, #FFFFFF);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  /* ... (Your icon CSS here) ... */
+}
+
+.logo-text {
+  font-family: 'Now-Regular', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #C10000;
+  letter-spacing: -1px;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 15px;
+  }
+  
+  .logo-text {
+    font-size: 1.8rem;
+  }
+
+  .logo-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+}

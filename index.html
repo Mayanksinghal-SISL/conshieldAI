@@ -1,40 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Client Daily Consumption Overview</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
-  <script type="module" crossorigin src="/js/main.js"></script> 
-  
-  </head>
+  <script type="module" crossorigin src="/js/main.js"></script>
+</head>
+
 <body>
   <div class="app-container">
-    <header class="app-header">
-      <h1>Client Consumption Data</h1>
-      <div class="last-updated">Last updated: <span id="lastUpdated">Loading...</span></div>
-    </header>
+
 
     <main class="app-main">
       <div id="loading" class="loading-indicator">
         <div class="spinner"></div>
-        <p>Loading data from SharePoint...</p>
       </div>
 
       <div id="errorMessage" class="error-message" style="display: none;"></div>
 
       <div id="fileContent" class="file-content">
         <div id="tableWrapper">
+          <div class="logoWrapper">
+            <img src="conShieldLogo_prev_ui.png" alt="conShield Logo" style="width: 300px;">
+          </div>
           <div id="tableContainer"></div>
         </div>
 
-        <div id="mobileAccordion"></div>
+        <div id="mobileAccordion">
+          <div class="logoWrapper">
+            <img src="conShieldLogo_prev_ui.png" alt="conShield Logo" style="width: 300px;">
+          </div>
+          <div class="accordionWrapper"></div>
+        </div>
       </div>
     </main>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+  <!-- <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script> -->
 </body>
+
 </html>

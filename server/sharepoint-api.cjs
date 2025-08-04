@@ -1,6 +1,13 @@
 // server/sharepoint-api.cjs
 
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
+// TEMPORARY DEBUGGING LOGS - You can remove these later
+console.log("-----------------------------------------");
+console.log("Debugging Environment Variables:");
+console.log("TENANT_ID:", process.env.TENANT_ID ? "Found" : "Not Found");
+console.log("CLIENT_ID:", process.env.CLIENT_ID ? "Found" : "Not Found");
+console.log("CLIENT_SECRET:", process.env.CLIENT_SECRET ? "Found" : "Not Found");
+console.log("-----------------------------------------");
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -48,9 +55,9 @@ class MyAuthProvider {
 
 async function getGraphClient() {
   const credential = new ClientSecretCredential(
-    process.env.AZURE_TENANT_ID,
-    process.env.AZURE_CLIENT_ID,
-    process.env.AZURE_CLIENT_SECRET
+    process.env.TENANT_ID,
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET
   );
 
   const authProvider = new MyAuthProvider(credential);
@@ -60,6 +67,7 @@ async function getGraphClient() {
 
   return client;
 }
+
 
 // --- CORE EXCEL PROCESSING AND EMAIL SENDING LOGIC (wrapped in a function) ---
 async function runExcelProcessingAndEmailTask() {

@@ -1,78 +1,57 @@
-// Remove any 'import XLSX' or 'require("xlsx")' from this file.
-// The Excel processing is now done on the backend.
+// --- Imports and Helper Functions (Keep these as they are) ---
+// Helper function for safe numeric conversion
+const getNumericValue = (text) => {
+    const raw = String(text).trim().replace(/[$,%]/g, '');
+    return (!isNaN(raw) && raw !== '' && raw.toUpperCase() !== 'NA') ? Number(raw) : null;
+};
 
-/**
- * Renders the processed Excel data (received from the backend) to build the UI.
- * @param {Object} processedData An object containing clientDataForDisplay, combinedDateHeaders, and visibility flags.
- */
-function renderExcelData(processedData) { // Renamed from processExcelData
-    const { clientDataForDisplay, combinedDateHeaders, hasNonZeroMonthlyCount, hasNonZeroFortnightlyCount, hasNonZeroWeeklyCount, error } = processedData;
-
-    document.getElementById('loadingPlaceholder')?.remove(); // Remove loading placeholder immediately here
-
-    if (error) {
-        console.error("Backend reported an error during Excel processing:", error);
-        alert(`Error from server: ${error}`);
-        return;
-    }
-
-    if (!clientDataForDisplay || clientDataForDisplay.length === 0) {
-        console.warn("No client data received from backend to display.");
-        alert("No relevant client data received from the server. Please check backend logs or Excel file sheet names.");
-        return;
-    }
-
-    // Helper function for safe numeric conversion - Keep this here if you use it for rendering
-    const getNumericValueForDisplay = (text) => {
-        const raw = String(text).trim().replace(/[$,%]/g, '');
-        return (!isNaN(raw) && raw !== '' && raw.toUpperCase() !== 'NA') ? Number(raw) : null;
-    };
+// Function to render the table and accordions
+function renderProcessedData(processedData) {
+    // ... [Your existing renderProcessedData function goes here, exactly as you have it] ...
+    const {
+        clientDataForDisplay,
+        combinedDateHeaders,
+        hasNonZeroMonthlyCount,
+        hasNonZeroFortnightlyCount,
+        hasNonZeroWeeklyCount
+    } = processedData;
 
     // --- BUILD THE HTML TABLE FOR DESKTOP DISPLAY ---
     const table = document.createElement('table');
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
 
-    // Create 'Account Name' header with toggle functionality
     const thClient = document.createElement('th');
     thClient.classList.add('account-name');
-
     const headerContent = document.createElement('div');
     headerContent.style.display = 'flex';
     headerContent.style.justifyContent = 'space-between';
     headerContent.style.alignItems = 'center';
     headerContent.style.width = '100%';
-
     const spanText = document.createElement('span');
     spanText.textContent = 'Account Name';
-
     const toggleIcon = document.createElement('span');
     toggleIcon.textContent = '+';
     toggleIcon.classList.add('toggle-icon');
-
     toggleIcon.style.position = 'static';
     toggleIcon.style.transform = 'none';
     toggleIcon.style.margin = '0';
     toggleIcon.style.padding = '0';
     toggleIcon.style.minWidth = '1em';
     toggleIcon.style.cursor = 'pointer';
-
     toggleIcon.addEventListener('click', (e) => {
         e.stopPropagation();
         const expanding = toggleIcon.textContent === '+';
         toggleIcon.textContent = expanding ? '−' : '+';
-
         document.querySelectorAll('.date-col, .accordion-col-summary').forEach(cell => {
             cell.classList.toggle('expanded', expanding);
         });
     });
-
     headerContent.appendChild(spanText);
     headerContent.appendChild(toggleIcon);
     thClient.appendChild(headerContent);
     headerRow.appendChild(thClient);
 
-    // Add combined date headers
     combinedDateHeaders.forEach(h => {
         const th = document.createElement('th');
         th.textContent = h;
@@ -80,7 +59,6 @@ function renderExcelData(processedData) { // Renamed from processExcelData
         headerRow.appendChild(th);
     });
 
-    // --- Conditionally Add Summary Headers based on flags from backend ---
     if (hasNonZeroMonthlyCount) {
         const th = document.createElement('th');
         th.textContent = 'Total Monthly Count';
@@ -100,7 +78,6 @@ function renderExcelData(processedData) { // Renamed from processExcelData
         headerRow.appendChild(th);
     }
 
-    // Add always-visible summary headers
     const alwaysVisibleSummaryHeaders = [
         'Difference %',
         'Rolling Monthly Avg',
@@ -120,31 +97,37 @@ function renderExcelData(processedData) { // Renamed from processExcelData
 
     thead.appendChild(headerRow);
     table.appendChild(thead);
-
     const tbody = document.createElement('tbody');
-    const mobileAccordionContainer = document.getElementById('mobileAccordion');
-    mobileAccordionContainer.innerHTML = ''; // Clear previous content
-    mobileAccordionContainer.classList.remove('visible'); // Hide initially
+const mobileAccordionContainer = document.getElementById('mobileAccordion');
 
-    // Populate table body with client data and prepare mobile accordion data
+// If wrapper doesn't exist (first run), create it
+let accordionWrapper = mobileAccordionContainer.querySelector('.accordionWrapper');
+if (!accordionWrapper) {
+    accordionWrapper = document.createElement('div');
+    accordionWrapper.classList.add('accordionWrapper');
+    mobileAccordionContainer.appendChild(accordionWrapper);
+}
+
+// Clear only the accordion items, not the logo
+accordionWrapper.innerHTML = '';
+accordionWrapper.classList.remove('visible');
+
+
     clientDataForDisplay.forEach(clientData => {
-        // Only append row if it has valid daily data for a client
         if (!clientData.dailyValues.some(val => val !== '' && val !== null && String(val).toUpperCase() !== 'NA')) {
-            return; // Skip this client if no valid daily data
+            return;
         }
 
         const tr = document.createElement('tr');
         tr.classList.add('highlight-row');
-
         const tdClient = document.createElement('td');
         tdClient.textContent = clientData.client;
         tr.appendChild(tdClient);
 
-        // Add daily values
         clientData.dailyValues.forEach(val => {
             const td = document.createElement('td');
             td.classList.add('date-col');
-            const numericVal = getNumericValueForDisplay(val);
+            const numericVal = getNumericValue(val);
             if (numericVal !== null) {
                 td.textContent = Math.round(numericVal);
             } else if (typeof val === 'string' && val.toUpperCase() !== 'NA' && val !== '') {
@@ -155,7 +138,6 @@ function renderExcelData(processedData) { // Renamed from processExcelData
             tr.appendChild(td);
         });
 
-        // --- Conditionally Add Summary Cells for Desktop Table ---
         if (hasNonZeroMonthlyCount) {
             const tdTotal = document.createElement('td');
             tdTotal.textContent = clientData.monthlyCount;
@@ -175,7 +157,6 @@ function renderExcelData(processedData) { // Renamed from processExcelData
             tr.appendChild(tdWeeklyCount);
         }
 
-        // Add Difference %, Rolling Avgs, Yesterday's Data, Comments
         const tdDiff = document.createElement('td');
         tdDiff.textContent = clientData.diffPct;
         tr.appendChild(tdDiff);
@@ -221,34 +202,28 @@ function renderExcelData(processedData) { // Renamed from processExcelData
 
         const tdYesterday = document.createElement('td');
         tdYesterday.classList.add('yesterday-data');
-        tdYesterday.textContent = getNumericValueForDisplay(clientData.yesterdayData) !== null ? Math.round(getNumericValueForDisplay(clientData.yesterdayData)) : (clientData.yesterdayData === '' ? '' : clientData.yesterdayData);
+        tdYesterday.textContent = getNumericValue(clientData.yesterdayData) !== null ? Math.round(getNumericValue(clientData.yesterdayData)) : (clientData.yesterdayData === '' ? '' : clientData.yesterdayData);
         tr.appendChild(tdYesterday);
 
         const tdComments = document.createElement('td');
         tdComments.textContent = clientData.comments;
         tdComments.classList.add(clientData.commentClass);
         tr.appendChild(tdComments);
-
         tbody.appendChild(tr);
 
-        // Create mobile accordion item
         const accordionItem = document.createElement('div');
         accordionItem.classList.add('accordion-item');
         accordionItem.classList.add(`${clientData.commentClass}-bg`);
-
         const accordionHeader = document.createElement('div');
         accordionHeader.classList.add('accordion-header');
         const headerTextSpan = document.createElement('span');
         headerTextSpan.textContent = clientData.client;
         accordionHeader.appendChild(headerTextSpan);
-
         const accordionToggleIcon = document.createElement('span');
         accordionToggleIcon.textContent = '+';
         accordionToggleIcon.classList.add('accordion-toggle-icon');
         accordionHeader.appendChild(accordionToggleIcon);
-
         accordionItem.appendChild(accordionHeader);
-
         const accordionContent = document.createElement('div');
         accordionContent.classList.add('accordion-content');
         accordionContent.innerHTML = `
@@ -263,8 +238,7 @@ function renderExcelData(processedData) { // Renamed from processExcelData
             <p><strong>Comments:</strong> <span class="${clientData.commentClass}">${clientData.comments}</span></p>
         `;
         accordionItem.appendChild(accordionContent);
-        mobileAccordionContainer.appendChild(accordionItem);
-
+        accordionWrapper.appendChild(accordionItem);
         accordionHeader.addEventListener('click', () => {
             document.querySelectorAll('.accordion-item.active').forEach(item => {
                 if (item !== accordionItem) {
@@ -273,7 +247,6 @@ function renderExcelData(processedData) { // Renamed from processExcelData
                     item.querySelector('.accordion-toggle-icon').textContent = '+';
                 }
             });
-
             accordionItem.classList.toggle('active');
             const isExpanded = accordionContent.style.display === 'block';
             accordionContent.style.display = isExpanded ? 'none' : 'block';
@@ -282,24 +255,34 @@ function renderExcelData(processedData) { // Renamed from processExcelData
     });
 
     table.appendChild(tbody);
-
     const container = document.getElementById('tableContainer');
     container.innerHTML = '';
     container.appendChild(table);
-
     if (mobileAccordionContainer.childElementCount > 0) {
         mobileAccordionContainer.classList.add('visible');
     }
     document.getElementById('tableWrapper').classList.add('visible');
-
-    // This line is already removed by the top of this function now
-    // document.getElementById('loadingPlaceholder')?.remove();
+    document.getElementById('loadingPlaceholder')?.remove();
+    const lastUpdatedSpan = document.getElementById('lastUpdated');
+    if (lastUpdatedSpan) {
+        const now = new Date();
+        const options = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        };
+        lastUpdatedSpan.textContent = now.toLocaleString('en-US', options);
+    }
 }
 
 
 // --- Main execution starts when the page loads ---
 document.addEventListener('DOMContentLoaded', async function () {
-    console.log('Page loaded, initiating SharePoint authentication...');
+    console.log('Page loaded, initiating data fetch from backend...');
 
     const loadingPlaceholder = document.createElement('div');
     loadingPlaceholder.id = 'loadingPlaceholder';
@@ -315,94 +298,42 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.body.insertBefore(loadingPlaceholder, document.body.firstChild);
     }
 
-// 1. MSAL Configuration
-// 1. MSAL Configuration
-    const msalConfig = {
-        auth: {
-            clientId: 'aa32d781-5b43-46ef-9f1e-e5761d749a20',
-            // --- CHANGE THIS LINE ---
-            authority: 'https://login.microsoftonline.com/2cf8b742-8a28-4ecc-9256-f1ccf9a6381b',
-            // -----------------------
-            redirectUri: window.location.origin
-        },
-        cache: {
-            cacheLocation: 'localStorage',
-            storeAuthStateInCookie: false
-        }
-    };
-
-    const myMSALObj = new msal.PublicClientApplication(msalConfig);
-    let account = null;
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+    const EXCEL_API_ENDPOINT = `${API_BASE_URL}/api/file/excel`;
 
     try {
-        // 2. Handle Login & Get Account
-        const accounts = myMSALObj.getAllAccounts();
-        if (accounts.length > 0) {
-            account = accounts[0];
-            console.log('User already signed in:', account.username);
-        } else {
-            console.log('No active account found, prompting for login...');
-            loadingPlaceholder.textContent = 'Authenticating with Microsoft... (Popup may appear)';
-            const loginResponse = await myMSALObj.loginPopup({
-                scopes: ['User.Read', 'Files.Read.All', 'Sites.Read.All']
-            });
-            account = loginResponse.account;
-            console.log('Login successful for:', account.username);
-        }
+        loadingPlaceholder.textContent = 'Fetching data from backend...';
+        console.log('Fetching from:', EXCEL_API_ENDPOINT);
 
-        if (account) {
-            console.log('Authentication successful. Acquiring token for Graph API...');
-            loadingPlaceholder.textContent = 'Acquiring access token...';
+        const response = await fetch(EXCEL_API_ENDPOINT);
 
-            // 3. Get Access Token for Graph API
-            const tokenRequest = {
-                scopes: ['User.Read', 'Files.Read.All', 'Sites.Read.All'],
-                account: account
-            };
-            const tokenResponse = await myMSALObj.acquireTokenSilent(tokenRequest);
-            console.log('Access token acquired.');
-
-            // 4. Fetch the file from SharePoint using YOUR Backend API
-            const backendApiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/file/excel`;
-            console.log('Attempting to fetch processed data from backend API:', backendApiUrl);
-            loadingPlaceholder.textContent = 'Fetching and processing Excel data...';
-
-            const response = await fetch(backendApiUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${tokenResponse.accessToken}` // Pass the token to your backend
-                }
-            });
-
-            if (!response.ok) {
-                let errorMessage = `Backend API error! Status: ${response.status}`;
-                try {
-                    const errorBody = await response.json();
-                    errorMessage += ` - Details: ${errorBody.details || errorBody.error || JSON.stringify(errorBody)}. Please check console for details.`;
-                } catch (jsonError) {
-                    errorMessage += ` - Details: ${await response.text()}. (Response was not JSON).`;
-                }
-                throw new Error(errorMessage);
+        if (!response.ok) {
+            let errorMessage = `Backend API error! Status: ${response.status}`;
+            try {
+                const errorBody = await response.json();
+                errorMessage += ` - Details: ${errorBody.error?.message || JSON.stringify(errorBody)}`;
+            } catch (jsonError) {
+                const errorText = await response.text();
+                errorMessage += ` - Raw Response: ${errorText.substring(0, 200)}...`;
             }
-
-            const processedData = await response.json(); // !!! THIS IS THE CORRECT WAY NOW !!!
-            console.log('Processed data received from backend. Rendering UI...');
-
-            renderExcelData(processedData); // Call the new rendering function
-
-            console.log('UI updated with processed data.');
-            // The loading placeholder is removed inside renderExcelData on success
-
-        } else {
-            throw new Error('Authentication failed: No account available after login attempt.');
+            throw new Error(errorMessage);
         }
+
+        const processedData = await response.json();
+
+        console.log('Processed data received from backend. Keys:', Object.keys(processedData));
+        loadingPlaceholder.textContent = 'Building display...';
+
+        renderProcessedData(processedData);
+
+        console.log('Data processing complete and UI updated.');
 
     } catch (error) {
-        console.error('An error occurred during API call or UI rendering:', error);
+        console.error('An error occurred during backend fetch or processing:', error);
         if (loadingPlaceholder) {
             loadingPlaceholder.textContent = `Error: ${error.message}. Please check console for details.`;
             loadingPlaceholder.style.color = 'red';
         }
-        alert(`An error occurred: ${error.message}. Please check the console for more details.`);
+        alert(`An error occurred: ${error.message}. Please check the browser console (F12) for more details.`);
     }
 });

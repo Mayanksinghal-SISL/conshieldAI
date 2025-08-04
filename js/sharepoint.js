@@ -1,85 +1,29 @@
-import { getAccessToken } from './auth.js';
+// This file is in your frontend directory, e.g., src/sharepoint.js
 
-const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const EXCEL_API_ENDPOINT = `${API_BASE_URL}/api/file/excel`;
 
-// Function to get file content from SharePoint
-export async function getFileContent(fileId) {
+/**
+ * Fetches the processed Excel data (as a JSON object) from the backend.
+ * The backend handles all SharePoint API calls securely.
+ * @returns {Promise<Object>} An object containing the processed Excel data.
+ */
+export async function getProcessedDataFromBackend() {
     try {
-        const accessToken = await getAccessToken();
-        const response = await fetch(
-            `${GRAPH_ENDPOINT}/sites/${import.meta.env.VITE_SHAREPOINT_SITE_ID}` +
-            `/drives/${import.meta.env.VITE_SHAREPOINT_DRIVE_ID}` +
-            `/items/${fileId}/content`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/octet-stream'
-                }
-            }
-        );
+        const response = await fetch(EXCEL_API_ENDPOINT);
 
         if (!response.ok) {
-            throw new Error(`Failed to get file content: ${response.statusText}`);
+            let errorMessage = `Backend API error! Status: ${response.status}`;
+            const errorBody = await response.json();
+            errorMessage += ` - Details: ${errorBody.error?.details || JSON.stringify(errorBody)}`;
+            throw new Error(errorMessage);
         }
 
-        return await response.arrayBuffer();
+        const processedData = await response.json();
+        return processedData;
+
     } catch (error) {
-        console.error('Error getting file content:', error);
-        throw error;
-    }
-}
-
-// Function to search for a file in SharePoint
-export async function findFile(fileName) {
-    try {
-        const accessToken = await getAccessToken();
-        const response = await fetch(
-            `${GRAPH_ENDPOINT}/sites/${import.meta.env.VITE_SHAREPOINT_SITE_ID}` +
-            `/drives/${import.meta.env.VITE_SHAREPOINT_DRIVE_ID}` +
-            `/root/search(q='${encodeURIComponent(fileName)}')`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Failed to search for file: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.value[0]; // Return first match
-    } catch (error) {
-        console.error('Error finding file:', error);
-        throw error;
-    }
-}
-
-// Function to get file metadata
-export async function getFileMetadata(fileId) {
-    try {
-        const accessToken = await getAccessToken();
-        const response = await fetch(
-            `${GRAPH_ENDPOINT}/sites/${import.meta.env.VITE_SHAREPOINT_SITE_ID}` +
-            `/drives/${import.meta.env.VITE_SHAREPOINT_DRIVE_ID}` +
-            `/items/${fileId}`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Failed to get file metadata: ${response.statusText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error getting file metadata:', error);
+        console.error('An error occurred during backend fetch:', error);
         throw error;
     }
 }
